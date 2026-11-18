@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://recruithub.tn/diploma"
+           targetNamespace="http://recruithub.tn/diploma"
+           elementFormDefault="qualified">
+
+    <xs:element name="VerifyDiplomaRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="holderName" type="xs:string"/>
+                <xs:element name="title" type="xs:string"/>
+                <xs:element name="institution" type="xs:string"/>
+                <xs:element name="year" type="xs:int"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="VerifyDiplomaResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="valid" type="xs:boolean"/>
+                <xs:element name="status" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="DiplomaNotFoundFault">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="message" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
