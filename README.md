@@ -13,6 +13,8 @@ Plateforme de recrutement en microservices : gestion REST des candidats, offres 
 
 Les contrats partagés sont dans [`contracts/`](contracts/); le WSDL et le schéma XSD du registre SOAP sont dans les ressources de `diploma-registry-service`. La passerelle transmet les requêtes vers le service de recrutement. Celui-ci enregistre la candidature avant les appels distants et conserve un statut en attente lorsque le registre ou le service de matching est indisponible. Un traitement planifié reprend les candidatures en attente.
 
+Pour une explication détaillée des services, de leurs échanges, des API, des bases de données et des commandes, consultez le [guide complet du projet](GUIDE_PROJET.md).
+
 ## Prérequis
 
 - Java 21
@@ -35,7 +37,7 @@ Le service de recrutement utilise H2 par défaut pour le développement local. L
 docker compose up --build
 ```
 
-La pile contient les quatre services applicatifs et trois bases PostgreSQL. L’API est accessible sur `http://localhost:8080`; l’endpoint de santé de la passerelle est `http://localhost:8080/actuator/health`. L’interface Swagger est disponible sur `http://localhost:8081/swagger-ui/index.html`.
+La pile contient les quatre services applicatifs et trois bases PostgreSQL. L’API passe par la passerelle sur `http://localhost:8085`; son endpoint de santé est `http://localhost:8085/actuator/health`. L’interface Swagger de Recruitment est disponible sur `http://localhost:8084/swagger-ui/index.html`.
 
 Le registre simulé contient un diplôme de démonstration :
 
