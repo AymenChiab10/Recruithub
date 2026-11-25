@@ -8,6 +8,9 @@ public record CandidateResponse(
         String lastName,
         String email,
         List<String> skills,
-        Integer experienceYears
+        Integer experienceYears,
+        String diplomaTitle,
+        String diplomaInstitution,
+        Integer diplomaYear
 ) {
 }

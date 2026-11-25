@@ -37,6 +37,12 @@ public class Candidate {
 
     private Integer experienceYears;
 
+    private String diplomaTitle;
+
+    private String diplomaInstitution;
+
+    private Integer diplomaYear;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getFirstName() { return firstName; }
@@ -49,4 +55,10 @@ public class Candidate {
     public void setSkills(List<String> skills) { this.skills = skills == null ? new ArrayList<>() : skills; }
     public Integer getExperienceYears() { return experienceYears; }
     public void setExperienceYears(Integer experienceYears) { this.experienceYears = experienceYears; }
+    public String getDiplomaTitle() { return diplomaTitle; }
+    public void setDiplomaTitle(String diplomaTitle) { this.diplomaTitle = diplomaTitle; }
+    public String getDiplomaInstitution() { return diplomaInstitution; }
+    public void setDiplomaInstitution(String diplomaInstitution) { this.diplomaInstitution = diplomaInstitution; }
+    public Integer getDiplomaYear() { return diplomaYear; }
+    public void setDiplomaYear(Integer diplomaYear) { this.diplomaYear = diplomaYear; }
 }

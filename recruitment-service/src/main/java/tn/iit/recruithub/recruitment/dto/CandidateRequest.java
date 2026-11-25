@@ -11,6 +11,9 @@ public record CandidateRequest(
         @NotBlank String lastName,
         @NotBlank @Email String email,
         List<String> skills,
-        @PositiveOrZero Integer experienceYears
+        @PositiveOrZero Integer experienceYears,
+        String diplomaTitle,
+        String diplomaInstitution,
+        @PositiveOrZero Integer diplomaYear
 ) {
 }

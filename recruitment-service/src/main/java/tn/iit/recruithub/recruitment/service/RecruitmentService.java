@@ -2,6 +2,7 @@ package tn.iit.recruithub.recruitment.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tn.iit.recruithub.matching.grpc.RankedApplication;
 import tn.iit.recruithub.recruitment.dto.ApplicationRequest;
 import tn.iit.recruithub.recruitment.dto.ApplicationResponse;
 import tn.iit.recruithub.recruitment.dto.CandidateRequest;
@@ -11,6 +12,7 @@ import tn.iit.recruithub.recruitment.dto.OfferResponse;
 import tn.iit.recruithub.recruitment.dto.RankedApplicationResponse;
 import tn.iit.recruithub.recruitment.exception.DuplicateResourceException;
 import tn.iit.recruithub.recruitment.exception.ResourceNotFoundException;
+import tn.iit.recruithub.recruitment.integration.ResilientRemoteClients;
 import tn.iit.recruithub.recruitment.model.Candidate;
 import tn.iit.recruithub.recruitment.model.JobApplication;
 import tn.iit.recruithub.recruitment.model.Offer;
@@ -19,7 +21,6 @@ import tn.iit.recruithub.recruitment.repository.CandidateRepository;
 import tn.iit.recruithub.recruitment.repository.OfferRepository;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -29,13 +30,19 @@ public class RecruitmentService {
     private final CandidateRepository candidateRepository;
     private final OfferRepository offerRepository;
     private final ApplicationRepository applicationRepository;
+    private final ApplicationProcessingService processingService;
+    private final ResilientRemoteClients remoteClients;
 
     public RecruitmentService(CandidateRepository candidateRepository,
                               OfferRepository offerRepository,
-                              ApplicationRepository applicationRepository) {
+                              ApplicationRepository applicationRepository,
+                              ApplicationProcessingService processingService,
+                              ResilientRemoteClients remoteClients) {
         this.candidateRepository = candidateRepository;
         this.offerRepository = offerRepository;
         this.applicationRepository = applicationRepository;
+        this.processingService = processingService;
+        this.remoteClients = remoteClients;
     }
 
     public CandidateResponse createCandidate(CandidateRequest request) {
@@ -109,7 +116,9 @@ public class RecruitmentService {
         JobApplication application = new JobApplication();
         application.setCandidate(candidate);
         application.setOffer(offer);
-        return toApplication(applicationRepository.save(application));
+        application.setStatus(JobApplication.ApplicationStatus.RECEIVED);
+        JobApplication saved = applicationRepository.save(application);
+        return processingService.process(saved.getId());
     }
 
     @Transactional(readOnly = true)
@@ -132,51 +141,10 @@ public class RecruitmentService {
 
     @Transactional(readOnly = true)
     public List<RankedApplicationResponse> rankApplications(Long offerId) {
-        Offer offer = getOffer(offerId);
-        List<JobApplication> applications = applicationRepository.findByOfferId(offerId);
-
-        List<RankedApplicationResponse> ranked = new ArrayList<>();
-        for (JobApplication application : applications) {
-            double score = calculateScore(application.getCandidate(), offer);
-            ranked.add(new RankedApplicationResponse(application.getId(), score, 0));
-        }
-
-        ranked.sort(Comparator.comparingDouble(RankedApplicationResponse::score).reversed());
-        List<RankedApplicationResponse> withRanks = new ArrayList<>();
-        for (int i = 0; i < ranked.size(); i++) {
-            RankedApplicationResponse item = ranked.get(i);
-            withRanks.add(new RankedApplicationResponse(item.applicationId(), item.score(), i + 1));
-        }
-        return withRanks;
-    }
-
-    private double calculateScore(Candidate candidate, Offer offer) {
-        List<String> required = offer.getRequiredSkills().stream()
-                .filter(skill -> skill != null && !skill.isBlank())
-                .map(skill -> skill.toLowerCase(Locale.ROOT).trim())
+        getOffer(offerId);
+        return remoteClients.rankApplications(offerId).stream()
+                .map(this::toRankedApplication)
                 .toList();
-        List<String> candidateSkills = candidate.getSkills().stream()
-                .filter(skill -> skill != null && !skill.isBlank())
-                .map(skill -> skill.toLowerCase(Locale.ROOT).trim())
-                .toList();
-
-        double skillScore = 0.0;
-        if (!required.isEmpty()) {
-            long matches = required.stream().filter(candidateSkills::contains).count();
-            skillScore = 70.0 * matches / required.size();
-        } else {
-            skillScore = 70.0;
-        }
-
-        int requiredExperience = offer.getRequiredExperienceYears() == null
-                ? 0 : offer.getRequiredExperienceYears();
-        int candidateExperience = candidate.getExperienceYears() == null
-                ? 0 : candidate.getExperienceYears();
-        double experienceScore = requiredExperience == 0
-                ? 30.0
-                : 30.0 * Math.min(1.0, (double) candidateExperience / requiredExperience);
-
-        return Math.round((skillScore + experienceScore) * 100.0) / 100.0;
     }
 
     private Candidate getCandidate(Long id) {
@@ -195,6 +163,9 @@ public class RecruitmentService {
         candidate.setEmail(request.email().trim().toLowerCase(Locale.ROOT));
         candidate.setSkills(normalize(request.skills()));
         candidate.setExperienceYears(request.experienceYears());
+        candidate.setDiplomaTitle(normalizeText(request.diplomaTitle()));
+        candidate.setDiplomaInstitution(normalizeText(request.diplomaInstitution()));
+        candidate.setDiplomaYear(request.diplomaYear());
     }
 
     private void apply(Offer offer, OfferRequest request) {
@@ -218,7 +189,8 @@ public class RecruitmentService {
     private CandidateResponse toCandidate(Candidate candidate) {
         return new CandidateResponse(candidate.getId(), candidate.getFirstName(),
                 candidate.getLastName(), candidate.getEmail(),
-                List.copyOf(candidate.getSkills()), candidate.getExperienceYears());
+                List.copyOf(candidate.getSkills()), candidate.getExperienceYears(),
+                candidate.getDiplomaTitle(), candidate.getDiplomaInstitution(), candidate.getDiplomaYear());
     }
 
     private OfferResponse toOffer(Offer offer) {
@@ -229,6 +201,16 @@ public class RecruitmentService {
     private ApplicationResponse toApplication(JobApplication application) {
         return new ApplicationResponse(application.getId(),
                 application.getCandidate().getId(), application.getOffer().getId(),
-                application.getStatus().name(), application.getSubmittedAt());
+                application.getStatus().name(), application.getSubmittedAt(),
+                application.getScore(), application.isDiplomaVerified());
+    }
+
+    private RankedApplicationResponse toRankedApplication(RankedApplication application) {
+        return new RankedApplicationResponse(application.getApplicationId(),
+                application.getScore(), application.getRank());
+    }
+
+    private String normalizeText(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }

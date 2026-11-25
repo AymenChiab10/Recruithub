@@ -7,6 +7,8 @@ public record ApplicationResponse(
         Long candidateId,
         Long offerId,
         String status,
-        Instant submittedAt
+        Instant submittedAt,
+        Double score,
+        boolean diplomaVerified
 ) {
 }

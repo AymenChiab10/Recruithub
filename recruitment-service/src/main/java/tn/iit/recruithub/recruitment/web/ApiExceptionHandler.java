@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import tn.iit.recruithub.recruitment.exception.DuplicateResourceException;
 import tn.iit.recruithub.recruitment.exception.ResourceNotFoundException;
+import tn.iit.recruithub.recruitment.integration.RemoteDependencyException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -21,6 +22,12 @@ public class ApiExceptionHandler {
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<Map<String, Object>> handleDuplicate(DuplicateResourceException exception) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error(exception.getMessage()));
+    }
+
+    @ExceptionHandler(RemoteDependencyException.class)
+    public ResponseEntity<Map<String, Object>> handleRemoteDependency(RemoteDependencyException exception) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(error(exception.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
