@@ -4,6 +4,9 @@ info:
   version: 1.0.0
 servers:
   - url: http://localhost:8080
+    description: API Gateway démarrée localement
+  - url: http://localhost:8085
+    description: API Gateway accessible depuis l'hôte avec Docker Compose
 paths:
   /api/v1/candidates:
     post:
@@ -14,6 +17,15 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CandidateRequest'
+            example:
+              firstName: Demo
+              lastName: Candidate
+              email: demo@example.test
+              skills: [Java, Spring Boot]
+              experienceYears: 5
+              diplomaTitle: Computer Science
+              diplomaInstitution: IIT
+              diplomaYear: 2024
       responses:
         '201':
           description: Candidate created
@@ -25,6 +37,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '409':
           $ref: '#/components/responses/Conflict'
+        '502':
+          $ref: '#/components/responses/BadGateway'
     get:
       summary: List candidates
       responses:
@@ -36,6 +50,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Candidate'
+        '502':
+          $ref: '#/components/responses/BadGateway'
   /api/v1/candidates/{id}:
     parameters:
       - $ref: '#/components/parameters/Id'
@@ -50,6 +66,8 @@ paths:
                 $ref: '#/components/schemas/Candidate'
         '404':
           $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/BadGateway'
     put:
       summary: Update a candidate
       requestBody:
@@ -71,6 +89,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
+        '502':
+          $ref: '#/components/responses/BadGateway'
     delete:
       summary: Delete a candidate
       responses:
@@ -78,6 +98,8 @@ paths:
           description: Candidate deleted
         '404':
           $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/BadGateway'
   /api/v1/offers:
     post:
       summary: Create an offer
@@ -87,6 +109,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OfferRequest'
+            example:
+              title: Backend Developer
+              description: Develop and maintain RecruitHub services
+              requiredSkills: [Java, Spring Boot, PostgreSQL]
+              requiredExperienceYears: 3
       responses:
         '201':
           description: Offer created
@@ -96,6 +123,8 @@ paths:
                 $ref: '#/components/schemas/Offer'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '502':
+          $ref: '#/components/responses/BadGateway'
     get:
       summary: List offers
       responses:
@@ -107,6 +136,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Offer'
+        '502':
+          $ref: '#/components/responses/BadGateway'
   /api/v1/offers/{id}:
     parameters:
       - $ref: '#/components/parameters/Id'
@@ -121,6 +152,8 @@ paths:
                 $ref: '#/components/schemas/Offer'
         '404':
           $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/BadGateway'
     put:
       summary: Update an offer
       requestBody:
@@ -140,6 +173,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/BadGateway'
     delete:
       summary: Delete an offer
       responses:
@@ -147,6 +182,8 @@ paths:
           description: Offer deleted
         '404':
           $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/BadGateway'
   /api/v1/offers/{offerId}/ranking:
     get:
       summary: Rank applications for an offer
@@ -168,6 +205,8 @@ paths:
                   $ref: '#/components/schemas/RankedApplication'
         '404':
           $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/BadGateway'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
   /api/v1/candidatures:
@@ -179,6 +218,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ApplicationRequest'
+            example:
+              candidateId: 1
+              offerId: 1
       responses:
         '201':
           description: Application received, verified and scored or pending retry
@@ -192,6 +234,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
+        '502':
+          $ref: '#/components/responses/BadGateway'
     get:
       summary: List applications
       responses:
@@ -203,6 +247,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Application'
+        '502':
+          $ref: '#/components/responses/BadGateway'
   /api/v1/candidatures/{id}:
     parameters:
       - $ref: '#/components/parameters/Id'
@@ -217,6 +263,8 @@ paths:
                 $ref: '#/components/schemas/Application'
         '404':
           $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/BadGateway'
     delete:
       summary: Delete an application
       responses:
@@ -224,6 +272,8 @@ paths:
           description: Application deleted
         '404':
           $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/BadGateway'
 components:
   parameters:
     Id:
@@ -253,7 +303,13 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
     ServiceUnavailable:
-      description: A required downstream service is unavailable
+      description: Matching Service is unavailable when retrieving an offer ranking
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadGateway:
+      description: The API Gateway cannot reach the Recruitment Service
       content:
         application/json:
           schema:
@@ -351,6 +407,7 @@ components:
             - SCORED
             - ACCEPTED
             - REJECTED
+            - PENDING
         submittedAt:
           type: string
           format: date-time
