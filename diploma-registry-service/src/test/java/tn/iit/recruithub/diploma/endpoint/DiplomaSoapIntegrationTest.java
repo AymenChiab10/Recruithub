@@ -53,6 +53,7 @@ class DiplomaSoapIntegrationTest {
 
         assertEquals(200, wsdl.statusCode());
         assertTrue(wsdl.body().contains("DiplomaNotFoundFault"));
+        assertTrue(wsdl.body().contains("schemaLocation=\"diplomaXsd.xsd\""));
         assertEquals(200, schema.statusCode());
         assertTrue(schema.body().contains("VerifyDiplomaRequest"));
     }
