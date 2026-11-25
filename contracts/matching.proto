@@ -18,6 +18,7 @@ message ScoreRequest {
   repeated string required_skills = 4;
   int32 candidate_experience_years = 5;
   int32 required_experience_years = 6;
+  int64 application_id = 7;
 }
 
 message ScoreResponse {
