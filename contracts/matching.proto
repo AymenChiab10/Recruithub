@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package recruithub.matching;
+
+option java_multiple_files = true;
+option java_package = "tn.iit.recruithub.matching.grpc";
+option java_outer_classname = "MatchingContract";
+
+service MatchingService {
+  rpc CalculateScore(ScoreRequest) returns (ScoreResponse);
+  rpc RankApplications(RankingRequest) returns (stream RankedApplication);
+}
+
+message ScoreRequest {
+  int64 candidate_id = 1;
+  int64 offer_id = 2;
+  repeated string candidate_skills = 3;
+  repeated string required_skills = 4;
+  int32 candidate_experience_years = 5;
+  int32 required_experience_years = 6;
+  int64 application_id = 7;
+}
+
+message ScoreResponse {
+  double score = 1;
+  string status = 2;
+}
+
+message RankingRequest {
+  int64 offer_id = 1;
+}
+
+message RankedApplication {
+  int64 application_id = 1;
+  double score = 2;
+  int32 rank = 3;
+}
