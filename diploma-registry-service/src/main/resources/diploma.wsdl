@@ -8,7 +8,7 @@
     <wsdl:types>
         <xsd:schema>
             <xsd:import namespace="http://recruithub.tn/diploma"
-                        schemaLocation="diplomaXsd.xsd"/>
+                        schemaLocation="diploma.xsd"/>
         </xsd:schema>
     </wsdl:types>
 

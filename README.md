@@ -6,12 +6,12 @@ Plateforme de recrutement en microservices : gestion REST des candidats, offres 
 
 | Module | Interface | Port |
 |---|---|---:|
-| `api-gateway` | HTTP, routage `/api/v1/**` | 8080 |
-| `recruitment-service` | REST, orchestration SOAP/gRPC | 8081 |
+| `api-gateway` | HTTP, routage `/api/v1/**` | 8085 (hôte) / 8080 (conteneur) |
+| `recruitment-service` | REST, orchestration SOAP/gRPC | 8084 (hôte) / 8081 (conteneur) |
 | `matching-service` | HTTP actuator + gRPC | 8082 / 9090 |
 | `diploma-registry-service` | SOAP, WSDL sur `/ws/diploma.wsdl` | 8083 |
 
-Les contrats sont dans [`contracts/`](contracts/). La passerelle transmet les requêtes vers le service de recrutement. Celui-ci enregistre la candidature avant les appels distants et conserve un statut en attente lorsque le registre ou le service de matching est indisponible. Un traitement planifié reprend les candidatures en attente.
+Les contrats partagés sont dans [`contracts/`](contracts/); le WSDL et le schéma XSD du registre SOAP sont dans les ressources de `diploma-registry-service`. La passerelle transmet les requêtes vers le service de recrutement. Celui-ci enregistre la candidature avant les appels distants et conserve un statut en attente lorsque le registre ou le service de matching est indisponible. Un traitement planifié reprend les candidatures en attente.
 
 ## Prérequis
 

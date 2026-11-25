@@ -47,18 +47,6 @@
     </dependencies>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-            <resource>
-                <directory>${project.basedir}/../contracts</directory>
-                <includes>
-                    <include>diploma.xsd</include>
-                    <include>diploma.wsdl</include>
-                </includes>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
