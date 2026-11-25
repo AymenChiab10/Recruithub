@@ -1,0 +1,25 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: diploma-registry-service
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:diplomas;DB_CLOSE_DELAY=-1}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true
+    open-in-view: false
+
+recruithub:
+  diploma:
+    seed-data: ${DIPLOMA_SEED_DATA:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

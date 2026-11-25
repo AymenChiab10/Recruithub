@@ -1,0 +1,52 @@
+Fiche sujet : Plateforme de recrutement à microservices
+
+Mini-projet Architecture SOA et Services Web – Dr. Ing. Ghada Feki – Groupe : Aymen Chiab, Majdi
+Khabou, Mohamed Morali, Halim Khriribi
+
+1. Titre et description du problème métier
+
+RecruitHub : plateforme de recrutement avec classement automatique des candidatures et
+vérification des diplômes.
+
+Les recruteurs publient des offres et les candidats postulent en ligne. Le tri manuel des candidatures est
+long et les diplômes déclarés ne sont pas vérifiés. RecruitHub calcule un score d'adéquation
+candidat/offre et vérifie le diplôme auprès d'un registre officiel (simulé). Le recruteur obtient ainsi un
+classement fiable.
+
+2. Microservices envisagés et responsabilités
+
+Service           Responsabilités                            Ressources         Stockage
+                                                             métier             Aucun
+                                                                                PostgreSQL
+API Gateway       Point d'entrée unique, routage /api/v1/**  –
+                                                                                PostgreSQL
+Recruitment       CRUD candidats, offres, candidatures ;     Candidat,          PostgreSQL
+Service           orchestration du dépôt de candidature      Offre,
+                                                             Candidature
+
+Matching          Calcul du score CV/offre ; classement des  Score
+Service           candidatures
+
+Diploma           Registre officiel simulé : vérification d'un diplôme Diplôme
+
+Registry Service
+
+3. Style de chaque service et justification
+
+Service              Style         Raison du choix
+Recruitment Service  REST
+                                   Clients web et mobiles : HTTP/JSON standard,
+Matching Service     gRPC          documenté en OpenAPI (/api/v1).
+
+                                   Appel interne à fort volume : HTTP/2 binaire, RPC unaire
+                                   (score) et streaming (classement).
+Service                   Style Raison du choix
+
+Diploma Registry Service  SOAP  Partenaire externe simulé à contrat strict (XSD puis
+                                WSDL), SOAP Fault si diplôme introuvable.
+
+Appels inter-services : Recruitment → Matching en gRPC ; Recruitment → Registry en SOAP. En cas de
+panne, repli Resilience4j : statut SCORING_PENDING ou DIPLOMA_PENDING_VERIFICATION.
+
+4. Schéma d'architecture
+

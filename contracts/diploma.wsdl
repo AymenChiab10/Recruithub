@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:tns="http://recruithub.tn/diploma"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  name="DiplomaRegistry"
+                  targetNamespace="http://recruithub.tn/diploma">
+    <wsdl:types>
+        <xsd:schema>
+            <xsd:import namespace="http://recruithub.tn/diploma"
+                        schemaLocation="diplomaXsd.xsd"/>
+        </xsd:schema>
+    </wsdl:types>
+
+    <wsdl:message name="VerifyDiplomaRequest">
+        <wsdl:part name="parameters" element="tns:VerifyDiplomaRequest"/>
+    </wsdl:message>
+    <wsdl:message name="VerifyDiplomaResponse">
+        <wsdl:part name="parameters" element="tns:VerifyDiplomaResponse"/>
+    </wsdl:message>
+    <wsdl:message name="DiplomaNotFoundFault">
+        <wsdl:part name="fault" element="tns:DiplomaNotFoundFault"/>
+    </wsdl:message>
+
+    <wsdl:portType name="DiplomaRegistryPort">
+        <wsdl:operation name="VerifyDiploma">
+            <wsdl:input message="tns:VerifyDiplomaRequest"/>
+            <wsdl:output message="tns:VerifyDiplomaResponse"/>
+            <wsdl:fault name="DiplomaNotFound" message="tns:DiplomaNotFoundFault"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="DiplomaRegistrySoapBinding" type="tns:DiplomaRegistryPort">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="VerifyDiploma">
+            <soap:operation soapAction="http://recruithub.tn/diploma/VerifyDiploma"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+            <wsdl:fault name="DiplomaNotFound"><soap:fault name="DiplomaNotFound" use="literal"/></wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="DiplomaRegistryService">
+        <wsdl:port name="DiplomaRegistrySoapPort" binding="tns:DiplomaRegistrySoapBinding">
+            <soap:address location="http://localhost:8083/ws"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

@@ -1,0 +1,380 @@
+openapi: 3.0.3
+info:
+  title: RecruitHub Recruitment API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/candidates:
+    post:
+      summary: Create a candidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateRequest'
+      responses:
+        '201':
+          description: Candidate created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Candidate'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    get:
+      summary: List candidates
+      responses:
+        '200':
+          description: Candidates found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Candidate'
+  /api/v1/candidates/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get a candidate
+      responses:
+        '200':
+          description: Candidate found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Candidate'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update a candidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateRequest'
+      responses:
+        '200':
+          description: Candidate updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Candidate'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      summary: Delete a candidate
+      responses:
+        '204':
+          description: Candidate deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/offers:
+    post:
+      summary: Create an offer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferRequest'
+      responses:
+        '201':
+          description: Offer created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    get:
+      summary: List offers
+      responses:
+        '200':
+          description: Offers found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Offer'
+  /api/v1/offers/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get an offer
+      responses:
+        '200':
+          description: Offer found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update an offer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferRequest'
+      responses:
+        '200':
+          description: Offer updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete an offer
+      responses:
+        '204':
+          description: Offer deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/offers/{offerId}/ranking:
+    get:
+      summary: Rank applications for an offer
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Applications ranked by descending score
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RankedApplication'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/candidatures:
+    post:
+      summary: Submit an application
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationRequest'
+      responses:
+        '201':
+          description: Application received, verified and scored or pending retry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    get:
+      summary: List applications
+      responses:
+        '200':
+          description: Applications found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+  /api/v1/candidatures/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get an application
+      responses:
+        '200':
+          description: Application found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete an application
+      responses:
+        '204':
+          description: Application deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServiceUnavailable:
+      description: A required downstream service is unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    CandidateRequest:
+      type: object
+      required: [firstName, lastName, email]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        skills:
+          type: array
+          items:
+            type: string
+        experienceYears:
+          type: integer
+          minimum: 0
+        diplomaTitle:
+          type: string
+        diplomaInstitution:
+          type: string
+        diplomaYear:
+          type: integer
+          minimum: 0
+    Candidate:
+      allOf:
+        - $ref: '#/components/schemas/CandidateRequest'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: integer
+              format: int64
+    OfferRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        requiredSkills:
+          type: array
+          items:
+            type: string
+        requiredExperienceYears:
+          type: integer
+          minimum: 0
+    Offer:
+      allOf:
+        - $ref: '#/components/schemas/OfferRequest'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: integer
+              format: int64
+    ApplicationRequest:
+      type: object
+      required: [candidateId, offerId]
+      properties:
+        candidateId:
+          type: integer
+          format: int64
+        offerId:
+          type: integer
+          format: int64
+    Application:
+      type: object
+      required: [id, candidateId, offerId, status, submittedAt, diplomaVerified]
+      properties:
+        id:
+          type: integer
+          format: int64
+        candidateId:
+          type: integer
+          format: int64
+        offerId:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum:
+            - RECEIVED
+            - DIPLOMA_VERIFIED
+            - DIPLOMA_NOT_FOUND
+            - DIPLOMA_PENDING_VERIFICATION
+            - SCORING_PENDING
+            - SCORED
+            - ACCEPTED
+            - REJECTED
+        submittedAt:
+          type: string
+          format: date-time
+        score:
+          type: number
+          format: double
+          nullable: true
+        diplomaVerified:
+          type: boolean
+    RankedApplication:
+      type: object
+      required: [applicationId, score, rank]
+      properties:
+        applicationId:
+          type: integer
+          format: int64
+        score:
+          type: number
+          format: double
+        rank:
+          type: integer
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
