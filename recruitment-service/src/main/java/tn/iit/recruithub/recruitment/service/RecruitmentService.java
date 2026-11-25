@@ -23,6 +23,8 @@ import tn.iit.recruithub.recruitment.repository.OfferRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -142,9 +144,18 @@ public class RecruitmentService {
     @Transactional(readOnly = true)
     public List<RankedApplicationResponse> rankApplications(Long offerId) {
         getOffer(offerId);
-        return remoteClients.rankApplications(offerId).stream()
-                .map(this::toRankedApplication)
-                .toList();
+        Set<Long> scoredApplicationIds = applicationRepository.findByOfferId(offerId).stream()
+                .filter(JobApplication::isScoringCompleted)
+                .map(JobApplication::getId)
+                .collect(Collectors.toSet());
+        List<RankedApplicationResponse> ranking = new ArrayList<>();
+        for (RankedApplication application : remoteClients.rankApplications(offerId)) {
+            if (scoredApplicationIds.contains(application.getApplicationId())) {
+                ranking.add(new RankedApplicationResponse(
+                        application.getApplicationId(), application.getScore(), ranking.size() + 1));
+            }
+        }
+        return List.copyOf(ranking);
     }
 
     private Candidate getCandidate(Long id) {
@@ -203,11 +214,6 @@ public class RecruitmentService {
                 application.getCandidate().getId(), application.getOffer().getId(),
                 application.getStatus().name(), application.getSubmittedAt(),
                 application.getScore(), application.isDiplomaVerified());
-    }
-
-    private RankedApplicationResponse toRankedApplication(RankedApplication application) {
-        return new RankedApplicationResponse(application.getApplicationId(),
-                application.getScore(), application.getRank());
     }
 
     private String normalizeText(String value) {
