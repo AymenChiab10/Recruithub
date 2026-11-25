@@ -22,9 +22,7 @@ public class ApplicationRetryScheduler {
     public void retryPendingApplications() {
         List<JobApplication> pending = applicationRepository.findByStatusIn(List.of(
                 JobApplication.ApplicationStatus.DIPLOMA_PENDING_VERIFICATION,
-                JobApplication.ApplicationStatus.SCORING_PENDING,
-                JobApplication.ApplicationStatus.RECEIVED,
-                JobApplication.ApplicationStatus.PENDING));
+                JobApplication.ApplicationStatus.SCORING_PENDING));
         pending.forEach(application -> processingService.process(application.getId()));
     }
 }
